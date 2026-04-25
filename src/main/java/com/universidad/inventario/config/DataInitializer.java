@@ -14,22 +14,30 @@ public class DataInitializer {
     CommandLineRunner initAdmin(UsuarioRepository usuarioRepository,
                                 PasswordEncoder passwordEncoder) {
         return args -> {
-            String correoAdmin = System.getenv().getOrDefault("ADMIN_CORREO", "admin@correo.com");
+            try {
 
-            boolean existeAdmin = usuarioRepository.findByCorreo(correoAdmin).isPresent();
-            if (existeAdmin) {
-                return;
+                String correoAdmin = "admin@correo.com";
+
+                Usuario existente = usuarioRepository.findByCorreo(correoAdmin);
+
+                if (existente != null) {
+                    System.out.println("Admin ya existe");
+                    return;
+                }
+
+                Usuario admin = new Usuario();
+                admin.setNombre("Administrador");
+                admin.setCorreo(correoAdmin);
+                admin.setContrasena(passwordEncoder.encode("Admin123*"));
+                admin.setRol(Usuario.Rol.ADMIN);
+
+                usuarioRepository.save(admin);
+
+                System.out.println("Admin creado correctamente");
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            Usuario admin = new Usuario();
-            admin.setNombre(System.getenv().getOrDefault("ADMIN_NOMBRE", "Administrador"));
-            admin.setCorreo(correoAdmin);
-            admin.setContrasena(passwordEncoder.encode(
-                    System.getenv().getOrDefault("ADMIN_PASSWORD", "Admin123*")
-            ));
-            admin.setRol(Usuario.Rol.ADMIN);
-
-            usuarioRepository.save(admin);
         };
     }
 }
